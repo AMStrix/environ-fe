@@ -1,3 +1,9 @@
+# webpack compilations
+dist/
+
+# mac
+.DS_Store
+
 # Logs
 logs
 *.log
