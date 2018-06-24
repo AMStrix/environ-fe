@@ -9,8 +9,10 @@ import {
   HorizontalGridLines,
   VerticalGridLines,
   LineSeries,
+  AreaSeries,
   CustomSVGSeries
 } from 'react-vis';
+import {curveCatmullRom} from 'd3-shape';
 import 'react-vis/dist/style.css';
 import ToggleButton from './ToggleButton.js';
 
@@ -63,7 +65,8 @@ class Chart extends Component {
           <VerticalGridLines />
           <XAxis title="Time" />
           <YAxis title="Temperature" orientation="right" />
-          <LineSeries data={this.state.temperatureHistory} />
+          <AreaSeries data={this.state.fanHistoryTemp} style={{strokeWidth: 0, fill: 'rgba(23, 76, 167, 0.19)'}} />
+          <LineSeries data={this.state.temperatureHistory} curve={curveCatmullRom.alpha(0.5)} color="rgb(255, 8, 0)" />
           <CustomSVGSeries
             data={
               [ 
@@ -74,7 +77,7 @@ class Chart extends Component {
                   customComponent: () => {
                     return (
                       <g>
-                        <circle cx="10" cy="0" r={40 / 2}/>
+                        <circle cx="10" cy="0" r={40 / 2} fill="rgb(255, 8, 0)" />
                         <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em">
                           {this.state.temperatureHistory[this.state.temperatureHistory.length-1].y}
                         </text>
@@ -93,7 +96,7 @@ class Chart extends Component {
           <VerticalGridLines />
           <XAxis title="Time" />
           <YAxis title="Humidity" orientation="right" />
-          <LineSeries data={this.state.humidityHistory} />
+          <LineSeries data={this.state.humidityHistory} curve={curveCatmullRom.alpha(0.5)} color="rgb(0, 8, 255)" />
           <CustomSVGSeries
             data={
               [ 
@@ -104,7 +107,7 @@ class Chart extends Component {
                   customComponent: () => {
                     return (
                       <g>
-                        <circle cx="10" cy="0" r={40 / 2}/>
+                        <circle cx="10" cy="0" r={40 / 2} fill="rgb(0, 8, 255)"/>
                         <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em">
                           {this.state.humidityHistory[this.state.humidityHistory.length-1].y}
                         </text>
@@ -143,17 +146,29 @@ class Chart extends Component {
     });
     const temperatureHistory = result.data.history.map(x => ({x: Date.parse(x.time), y: x.t}));
     const humidityHistory = result.data.history.map(x => ({x: Date.parse(x.time), y: x.h}));
-    // let maxTemp = result.data.history.reduce((a, x) => x.t > a ? x.t : a, 0);
-    // const fanHistoryForTemp = result.data.history.reduce((a, x) => {
-    //   if ()
-    // }, []);
-    this.setState({ temperatureHistory, humidityHistory });
+    let maxTemp = result.data.history.reduce((a, x) => x.t > a ? x.t : a, 0);
+    let minTemp = result.data.history.reduce((a, x) => x.t < a ? x.t : a, maxTemp);
+    const fanHistoryTemp = result.data.history.reduce((a, x) => {
+      let m = {false: minTemp, true: maxTemp, null: minTemp};
+      let xyObj = x => ({x: Date.parse(x.time), y: m[x.f]});
+      let last = a[a.length-1];
+      if (!a.length) { // first
+        a.push(xyObj(x));
+      } else if (m[x.f] !== last.y) {
+        let curXy = xyObj(x);
+        a.push((z => ({x: curXy.x - 1, y: z.y}))(last));
+        a.push(curXy);
+      }
+      return a;
+    }, []);
+    //console.log(fanHistoryTemp);
+    this.setState({ temperatureHistory, humidityHistory, fanHistoryTemp });
   };
 }
 
 const HISTORY = gql`
   query History($from: String!, $to: String!) {
-    history(from: $from, to: $to) {time,t,h}
+    history(from: $from, to: $to) {time,t,h,f}
   }
 `;
 
