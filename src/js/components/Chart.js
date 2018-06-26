@@ -60,7 +60,8 @@ class Chart extends Component {
           margin={{top: 10, right: 40, left: 10, bottom: 40}}
           xType="time"
           width={600}
-          height={200}>
+          height={200}
+          style={{font: '12px sans-serif'}}>
           <HorizontalGridLines />
           <VerticalGridLines />
           <XAxis title="Time" />
@@ -79,7 +80,9 @@ class Chart extends Component {
                       <g>
                         <circle cx="10" cy="0" r={40 / 2} fill="rgb(255, 8, 0)" />
                         <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em">
-                          {this.state.temperatureHistory[this.state.temperatureHistory.length-1].y}
+                          {/*this.state.temperatureHistory[this.state.temperatureHistory.length-1].y*/
+                            this.props.temperature + '°'
+                          }
                         </text>
                       </g>);
                   } 
@@ -91,11 +94,13 @@ class Chart extends Component {
           margin={{top: 10, right: 40, left: 10, bottom: 40}}
           xType="time"
           width={600}
-          height={200}>
+          height={200}
+          style={{font: '12px sans-serif'}}>
           <HorizontalGridLines />
           <VerticalGridLines />
           <XAxis title="Time" />
           <YAxis title="Humidity" orientation="right" />
+          <AreaSeries data={this.state.fanHistoryHum} style={{strokeWidth: 0, fill: 'rgba(23, 76, 167, 0.19)'}} />
           <LineSeries data={this.state.humidityHistory} curve={curveCatmullRom.alpha(0.5)} color="rgb(0, 8, 255)" />
           <CustomSVGSeries
             data={
@@ -108,8 +113,10 @@ class Chart extends Component {
                     return (
                       <g>
                         <circle cx="10" cy="0" r={40 / 2} fill="rgb(0, 8, 255)"/>
-                        <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em">
-                          {this.state.humidityHistory[this.state.humidityHistory.length-1].y}
+                        <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em" >
+                          {/*this.state.humidityHistory[this.state.humidityHistory.length-1].y*/
+                            this.props.humidity + '%'
+                          }
                         </text>
                       </g>);
                   } 
@@ -148,8 +155,16 @@ class Chart extends Component {
     const humidityHistory = result.data.history.map(x => ({x: Date.parse(x.time), y: x.h}));
     let maxTemp = result.data.history.reduce((a, x) => x.t > a ? x.t : a, 0);
     let minTemp = result.data.history.reduce((a, x) => x.t < a ? x.t : a, maxTemp);
-    const fanHistoryTemp = result.data.history.reduce((a, x) => {
-      let m = {false: minTemp, true: maxTemp, null: minTemp};
+    const fanHistoryTemp = this.calculateFanHistory(minTemp, maxTemp, result.data.history);
+    const maxHum = result.data.history.reduce((a, x) => x.h > a ? x.h : a, 0);
+    const minHum = result.data.history.reduce((a, x) => x.h < a ? x.h : a, maxHum);
+    const fanHistoryHum = this.calculateFanHistory(minHum, maxHum, result.data.history);
+    //console.log(fanHistoryTemp);
+    this.setState({ temperatureHistory, humidityHistory, fanHistoryTemp, fanHistoryHum });
+  }
+  calculateFanHistory(min, max, history) {
+    return history.reduce((a, x) => {
+      let m = {false: min, true: max, null: min};
       let xyObj = x => ({x: Date.parse(x.time), y: m[x.f]});
       let last = a[a.length-1];
       if (!a.length) { // first
@@ -161,10 +176,9 @@ class Chart extends Component {
       }
       return a;
     }, []);
-    //console.log(fanHistoryTemp);
-    this.setState({ temperatureHistory, humidityHistory, fanHistoryTemp });
-  };
+  }
 }
+
 
 const HISTORY = gql`
   query History($from: String!, $to: String!) {

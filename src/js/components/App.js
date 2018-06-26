@@ -24,7 +24,9 @@ class App extends Component {
         Temperature: {this.props.currentData.currentTemperature}°F <br/>
         Humidity: {this.props.currentData.currentHumidity}%<br/>
         Fan: {this.props.currentData.currentFanState ? 'on' : 'off'}
-        <Chart/>
+        <Chart 
+          temperature={this.props.currentData.currentTemperature}
+          humidity={this.props.currentData.currentHumidity} />
       </div>
     );
   }
