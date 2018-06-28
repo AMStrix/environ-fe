@@ -15,6 +15,7 @@ import {
 import {curveCatmullRom} from 'd3-shape';
 import 'react-vis/dist/style.css';
 import ToggleButton from './ToggleButton.js';
+import ChartTag from './ChartTag.js';
 
 class Chart extends Component {
   constructor() {
@@ -57,15 +58,15 @@ class Chart extends Component {
     return (
       <div>
         <XYPlot
-          margin={{top: 10, right: 40, left: 10, bottom: 40}}
+          margin={{top: 10, right: 55, left: 40, bottom: 40}}
           xType="time"
-          width={600}
+          width={this.props.width}
           height={200}
           style={{font: '12px sans-serif'}}>
           <HorizontalGridLines />
           <VerticalGridLines />
           <XAxis title="Time" />
-          <YAxis title="Temperature" orientation="right" />
+          <YAxis title="Temperature" orientation="left" />
           <AreaSeries data={this.state.fanHistoryTemp} style={{strokeWidth: 0, fill: 'rgba(23, 76, 167, 0.19)'}} />
           <LineSeries data={this.state.temperatureHistory} curve={curveCatmullRom.alpha(0.5)} color="rgb(255, 8, 0)" />
           <CustomSVGSeries
@@ -75,31 +76,22 @@ class Chart extends Component {
                   x: this.state.temperatureHistory[this.state.temperatureHistory.length-1].x, 
                   y: this.state.temperatureHistory[this.state.temperatureHistory.length-1].y, 
                   size: 10, 
-                  customComponent: () => {
-                    return (
-                      <g>
-                        <circle cx="10" cy="0" r={40 / 2} fill="rgb(255, 8, 0)" />
-                        <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em">
-                          {/*this.state.temperatureHistory[this.state.temperatureHistory.length-1].y*/
-                            this.props.temperature + '°'
-                          }
-                        </text>
-                      </g>);
-                  } 
+                  customComponent: () => 
+                    <ChartTag tagColor="rgb(255, 8, 0)" textColor="white" text={this.props.temperature + '°'} />
                 }
               ]
             }/>
         </XYPlot>
         <XYPlot
-          margin={{top: 10, right: 40, left: 10, bottom: 40}}
+          margin={{top: 10, right: 55, left: 40, bottom: 40}}
           xType="time"
-          width={600}
+          width={this.props.width}
           height={200}
-          style={{font: '12px sans-serif'}}>
+          style={{font: '12px sans-serif', marginTop: '-10px'}}>
           <HorizontalGridLines />
           <VerticalGridLines />
           <XAxis title="Time" />
-          <YAxis title="Humidity" orientation="right" />
+          <YAxis title="Humidity" orientation="left" />
           <AreaSeries data={this.state.fanHistoryHum} style={{strokeWidth: 0, fill: 'rgba(23, 76, 167, 0.19)'}} />
           <LineSeries data={this.state.humidityHistory} curve={curveCatmullRom.alpha(0.5)} color="rgb(0, 8, 255)" />
           <CustomSVGSeries
@@ -109,17 +101,8 @@ class Chart extends Component {
                   x: this.state.humidityHistory[this.state.humidityHistory.length-1].x, 
                   y: this.state.humidityHistory[this.state.humidityHistory.length-1].y, 
                   size: 10, 
-                  customComponent: () => {
-                    return (
-                      <g>
-                        <circle cx="10" cy="0" r={40 / 2} fill="rgb(0, 8, 255)"/>
-                        <text x="10" y="0" textAnchor="middle" fill="white" dy=".3em" >
-                          {/*this.state.humidityHistory[this.state.humidityHistory.length-1].y*/
-                            this.props.humidity + '%'
-                          }
-                        </text>
-                      </g>);
-                  } 
+                  customComponent: () => 
+                    <ChartTag tagColor="rgb(0, 8, 255)" textColor="white" text={this.props.humidity + '%'} />
                 }
               ]
             }/>
@@ -159,7 +142,6 @@ class Chart extends Component {
     const maxHum = result.data.history.reduce((a, x) => x.h > a ? x.h : a, 0);
     const minHum = result.data.history.reduce((a, x) => x.h < a ? x.h : a, maxHum);
     const fanHistoryHum = this.calculateFanHistory(minHum, maxHum, result.data.history);
-    //console.log(fanHistoryTemp);
     this.setState({ temperatureHistory, humidityHistory, fanHistoryTemp, fanHistoryHum });
   }
   calculateFanHistory(min, max, history) {

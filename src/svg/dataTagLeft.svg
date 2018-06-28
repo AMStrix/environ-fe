@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 128">                              
+    <g class="currentLayer">
+        <path fill="#eb1a1a" stroke="none" stroke-width="2" stroke-linejoin="round" stroke-dashoffset="" fill-rule="nonzero" marker-start="" marker-mid="" marker-end="" id="svg_1" d="M1.0000031167909607,64.83647055280849 L43.082916945685035,1.00000091303761 L400,1.00000091303761 L400,128.67294674507522 L43.082916945685035,128.67294674507522 L1.0000031167909607,64.83647055280849 z" style="color: rgb(0, 0, 0);" class="selected" fill-opacity="1"/>
+        <text style="font: 100px sans-serif" x="45px" y="50%" textAnchor="middle" dy=".33em" >{props.text}</text>
+    </g>
+</svg>
